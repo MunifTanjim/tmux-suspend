@@ -15,11 +15,11 @@ declare -r on_resume_command_config='@suspend_on_resume_command'
 declare -r on_suspend_command_config='@suspend_on_suspend_command'
 
 declare -r default_on_resume_command="tmux \
-  set-option -ugq '@mode_indicator_custom_prompt' \; \
-  set-option -ugq '@mode_indicator_custom_mode_style'"
+  set-option -uq '@mode_indicator_custom_prompt' \; \
+  set-option -uq '@mode_indicator_custom_mode_style'"
 declare -r default_on_suspend_command="tmux \
-  set-option -gq '@mode_indicator_custom_prompt' ' ---- ' \; \
-  set-option -gq '@mode_indicator_custom_mode_style' 'bg=brightblack,fg=black'"
+  set-option -q '@mode_indicator_custom_prompt' ' ---- ' \; \
+  set-option -q '@mode_indicator_custom_mode_style' 'bg=brightblack,fg=black'"
 
 init_tmux_suspend() {
   local -r KEY=$(tmux_option "$key_config" "F12")
