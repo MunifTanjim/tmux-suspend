@@ -3,7 +3,8 @@
 Plugin that lets you suspend **local tmux session**, so that you can work with
 **nested remote tmux session** painlessly.
 
-**Demo**:  
+**Demo**:
+
 ![Tmux Suspend Demo GIF](screenshots/tmux-suspend-demo.gif)
 
 ## Usage
@@ -54,23 +55,75 @@ tmux source-file ~/.tmux.conf
 
 The following configuration options are available:
 
+### `@suspend_key`
+
+Key used to suspend/resume local tmux session. This is not binded to any Prefix.
+
 ```conf
-# key to suspend/resume local tmux session
 set -g @suspend_key 'F12'
-
-# command to execute when local tmux session is resumed
-set -g @suspend_on_resume_command "tmux \
-  set-option -ugq '@mode_indicator_custom_prompt' \\; \
-  set-option -ugq '@mode_indicator_custom_mode_style'"
-
-# command to execute when local tmux session is suspended
-set -g @suspend_on_suspend_command "tmux \
-  set-option -gq '@mode_indicator_custom_prompt' ' ---- ' \\; \
-  set-option -gq '@mode_indicator_custom_mode_style' 'bg=brightblack,fg=black'"
 ```
 
-You can use the `@suspend_on_resume_command` and `@suspend_on_resume_command` to customize tmux status line
-to indicate the suspended state.
+### `@suspend_suspended_options`
+
+Comma-seperated list of items denoting options to set for suspended state.
+These options will be automatically reverted when session is resumed.
+
+```conf
+set -g @suspend_suspended_options " \
+  @mode_indicator_custom_prompt:: ---- , \
+  @mode_indicator_custom_mode_style::bg=brightblack\\,fg=black, \
+"
+```
+
+The syntax of each item is `#{option_name}:#{option_flags}:#{option_value}`.
+
+| Item Segment      | Description                                                                |
+| ----------------- | -------------------------------------------------------------------------- |
+| `#{option_name}`  | name of the option.                                                        |
+| `#{option_flags}` | flags accepted by `set-option`, can be left empty.                         |
+| `#{option_value}` | value of the option, commas (`,`) inside value need to be escaped as `\\,` |
+
+For example:
+
+```conf
+# remove colors from status line for suspended state
+set -g @suspend_suspended_options " \
+  status-left-style::bg=brightblack\\,fg=black bold dim, \
+  window-status-current-style:gw:bg=brightblack\\,fg=black, \
+  window-status-last-style:gw:fg=brightblack, \
+  window-status-style:gw:bg=black\\,fg=brightblack, \
+  @mode_indicator_custom_prompt:: ---- , \
+  @mode_indicator_custom_mode_style::bg=brightblack\\,fg=black, \
+"
+```
+
+### `@suspend_on_suspend_command` and `@suspend_on_resume_command`
+
+These options can be set to arbritary commands to run when session is
+suspended (`@suspend_on_suspend_command`) or resumed (`@suspend_on_resume_command`).
+
+```conf
+set -g @suspend_on_resume_command ""
+set -g @suspend_on_suspend_command ""
+```
+
+For example, you can do the same thing that the default value of `@suspend_suspended_options`
+does using these options instead:
+
+```conf
+set -g @suspend_suspended_options ""
+
+set -g @suspend_on_resume_command "tmux \
+  set-option -uq '@mode_indicator_custom_prompt' \\; \
+  set-option -uq '@mode_indicator_custom_mode_style'"
+
+set -g @suspend_on_suspend_command "tmux \
+  set-option -q '@mode_indicator_custom_prompt' ' ---- ' \\; \
+  set-option -q '@mode_indicator_custom_mode_style' 'bg=brightblack,fg=black'"
+```
+
+As you can see, it's more convenient to use `@suspend_suspended_options` for setting
+and reverting options.
 
 ## License
 
