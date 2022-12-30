@@ -28,6 +28,14 @@ init_tmux_suspend() {
   local -r on_resume_command=$(tmux_option "$on_resume_command_config" "$default_on_resume_command")
   local -r on_suspend_command=$(tmux_option "$on_suspend_command_config" "$default_on_suspend_command")
 
+  tmux set-option -gq "@suspend___backslash___" '\\,'
+  if [[ "$(tmux show-option -gqv "@suspend___backslash___")" = '\\\\,' ]]; then
+    tmux set-option -gq "@suspend___proper_backslash" "1"
+  else
+    tmux set-option -gq "@suspend___proper_backslash" "0"
+  fi
+  tmux set-option -gqu "@suspend___backslash___"
+
   tmux bind -Troot "$KEY" run-shell "$CURRENT_DIR/scripts/suspend.sh \"$on_suspend_command\" \"$suspended_options\""
   tmux bind -Tsuspended "$KEY" run-shell "$CURRENT_DIR/scripts/resume.sh \"$on_resume_command\""
 }
