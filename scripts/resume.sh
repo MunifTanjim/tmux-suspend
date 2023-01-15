@@ -6,11 +6,7 @@ set_options_for_resumed_state() {
   local -r escaped_delim="${RANDOM}${RANDOM}${RANDOM}"
 
   local _options="${1#,}"
-  if [[ "$(tmux show-option -gqv "@suspend___proper_backslash")" = "1" ]]; then
-    _options="${_options//\\\\,/${escaped_delim}}"
-  else
-    _options="${_options//\\,/${escaped_delim}}"
-  fi
+  _options="${_options//\\,/${escaped_delim}}"
   IFS=, read -ra options <<< "${_options}"
 
   local flags=""
