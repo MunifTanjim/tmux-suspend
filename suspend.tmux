@@ -14,6 +14,9 @@ declare -r key_config='@suspend_key'
 declare -r suspended_options_config='@suspend_suspended_options'
 declare -r on_resume_command_config='@suspend_on_resume_command'
 declare -r on_suspend_command_config='@suspend_on_suspend_command'
+declare -r nested_config='@suspend_nested'
+declare -r nested_down_key_config='@suspend_nested_down_key'
+declare -r nested_up_key_config='@suspend_nested_up_key'
 
 declare -r default_suspended_options=" \
   @mode_indicator_custom_prompt:: ---- , \
@@ -30,6 +33,23 @@ init_tmux_suspend() {
 
   tmux bind -Troot "$KEY" run-shell "$CURRENT_DIR/scripts/suspend.sh \"$on_suspend_command\" \"$suspended_options\""
   tmux bind -Tsuspended "$KEY" run-shell "$CURRENT_DIR/scripts/resume.sh \"$on_resume_command\""
+
+  local -r nested=$(tmux_option "$nested_config" "off")
+  if [[ "$nested" != "on" ]]; then
+    return
+  fi
+
+  local -r nested_down_key=$(tmux_option "$nested_down_key_config" "C-F12")
+  local -r nested_up_key=$(tmux_option "$nested_up_key_config" "C-S-F12")
+
+  # Make the suspend key depth-aware, so it cannot resume out of order and
+  # leave an inner level suspended.
+  tmux bind -Troot "$KEY" run-shell "$CURRENT_DIR/scripts/nested.sh enter \"$on_suspend_command\" \"$suspended_options\""
+  tmux bind -Tsuspended "$KEY" run-shell "$CURRENT_DIR/scripts/nested.sh shallower \"$KEY\" \"$on_resume_command\""
+
+  tmux bind -Troot "$nested_down_key" run-shell "$CURRENT_DIR/scripts/nested.sh enter \"$on_suspend_command\" \"$suspended_options\""
+  tmux bind -Tsuspended "$nested_down_key" run-shell "$CURRENT_DIR/scripts/nested.sh deeper \"$nested_down_key\""
+  tmux bind -Tsuspended "$nested_up_key" run-shell "$CURRENT_DIR/scripts/nested.sh shallower \"$nested_up_key\" \"$on_resume_command\""
 }
 
 init_tmux_suspend

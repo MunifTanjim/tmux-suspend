@@ -19,6 +19,45 @@ Press `F12` again in suspended state to resume local tmux session.
 _**Note**_: If you have [**tmux-mode-indicator**](https://github.com/MunifTanjim/tmux-mode-indicator)
 plugin installed, it'll automatically show indicator for the suspended state.
 
+### Nested Sessions (arbitrary depth)
+
+The single `@suspend_key` toggles one level. It cannot reach a tmux that is
+nested more than one level deep, because the outer tmux always owns the key.
+
+To control tmux sessions nested to any depth, enable nested mode. Nested mode
+adds two directional keys:
+
+- `Ctrl-F12` (`@suspend_nested_down_key`) — move control one level inward.
+- `Ctrl-Shift-F12` (`@suspend_nested_up_key`) — move control one level outward.
+
+Press `Ctrl-F12` to step into the inner tmux. Press it again to step deeper.
+Press `Ctrl-Shift-F12` to step back out one level. Each level keeps its own
+depth counter and forwards the key inward with `send-keys`, so this works across
+`ssh` without extra environment configuration.
+
+Enable nested mode:
+
+```conf
+set -g @suspend_nested 'on'
+```
+
+_**Requirements**_:
+
+- Install tmux-suspend and set `@suspend_nested 'on'` at **every** nested level.
+  The inner level must bind the same keys to receive the forwarded key.
+- Your terminal must send distinct sequences for `Ctrl-F12` and
+  `Ctrl-Shift-F12`, and tmux must recognize them. Enable extended keys:
+
+  ```conf
+  set -s extended-keys on
+  ```
+
+  Some terminals do not send these key combinations.
+In nested mode, `F12` also becomes depth-aware. `F12` suspends the current level
+and, when suspended, surfaces one level at a time. So `F12` is safe to mix with
+`Ctrl-F12` and `Ctrl-Shift-F12`. It cannot resume out of order and leave an
+inner level suspended. At a single level, `F12` behaves exactly as before.
+
 ## Installation
 
 ### Installation with [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm)
@@ -61,6 +100,26 @@ Key used to suspend/resume local tmux session. This is not binded to any Prefix.
 
 ```conf
 set -g @suspend_key 'F12'
+```
+
+### `@suspend_nested`
+
+Enables nested mode for controlling tmux sessions nested to any depth. Default
+is `off`. Set it to `on` to bind the directional keys below. See
+[Nested Sessions](#nested-sessions-arbitrary-depth).
+
+```conf
+set -g @suspend_nested 'off'
+```
+
+### `@suspend_nested_down_key` and `@suspend_nested_up_key`
+
+Keys used to move control inward and outward in nested mode. They are bound only
+when `@suspend_nested` is `on`.
+
+```conf
+set -g @suspend_nested_down_key 'C-F12'
+set -g @suspend_nested_up_key 'C-S-F12'
 ```
 
 ### `@suspend_suspended_options`

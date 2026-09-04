@@ -39,4 +39,6 @@ set_options_for_resumed_state "${resumed_options}"
 
 tmux set-option -q${prefix_flags} prefix "${prefix}" \; set-option -u key-table
 
+tmux set-option -qu '@suspend_depth'
+
 tmux refresh-client -S
